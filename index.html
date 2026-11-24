@@ -1,0 +1,1346 @@
+<!doctype html>
+<!-- AUTOMATISCH ERZEUGT von tools/build_handy.py - nicht von Hand bearbeiten.
+     Quelle: web_app/index.html, style.css, protocol.js, e2e.js, mqtt.js, app.js -->
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <!-- Sicherheitsregel: Die Seite darf NUR zum EMQX-Broker (wss, Port 8084) verbinden, sonst nirgendwohin. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src data:; connect-src wss://*.emqxsl.com:8084; base-uri 'none'; form-action 'none'">
+  <title>T190 Verbindung</title>
+  <style>
+/* style.css - mobil zuerst, einspaltig, hell/dunkel automatisch */
+:root {
+  --bg: #f4f5f7; --card: #ffffff; --text: #1b1d21; --muted: #5c6370;
+  --line: #d9dce1; --accent: #0a62c9; --accent-text: #ffffff;
+  --ok: #137333; --err: #b3261e; --warn: #a15c00; --info-bg: #e7f0fd; --err-bg: #fde8e7;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121316; --card: #1d1f24; --text: #e8eaed; --muted: #9aa0a6;
+    --line: #34373d; --accent: #4f9bff; --accent-text: #0b0c0e;
+    --ok: #63c27b; --err: #ff8a80; --warn: #ffb74d; --info-bg: #1c2a3d; --err-bg: #3b1d1b;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 17px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+main { max-width: 640px; margin: 0 auto; padding: 12px 16px 40px; }
+h1 { font-size: 1.5rem; margin: 8px 0 12px; }
+h2 { font-size: 1.1rem; margin: 0 0 10px; }
+section {
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  padding: 14px; margin: 0 0 14px;
+}
+section.disabled { opacity: .5; pointer-events: none; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+button {
+  font: inherit; min-height: 48px; padding: 10px 16px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--bg); color: var(--text);
+  cursor: pointer; flex: 1 1 auto;
+}
+button.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+button.warn { color: var(--warn); }
+button.danger { color: var(--err); }
+button:disabled { opacity: .5; cursor: default; }
+label { display: block; margin: 10px 0 4px; color: var(--muted); font-size: .95rem; }
+label.check, label.inline { display: flex; align-items: center; gap: 8px; color: var(--text); }
+label.inline { flex: 1 1 100%; }
+input[type=text], input[type=password], input[type=number], textarea {
+  display: block; width: 100%; font: inherit; padding: 10px 12px; margin-top: 4px;
+  border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--text);
+}
+input[type=number] { display: inline-block; width: 8em; margin: 0; }
+input[type=checkbox] { width: 22px; height: 22px; }
+textarea { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .9rem; }
+.box {
+  background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px; margin: 8px 0 0; min-height: 2.5em; overflow-x: auto;
+  font: .85rem/1.4 ui-monospace, Menlo, Consolas, monospace; white-space: pre-wrap; word-break: break-word;
+}
+.log { max-height: 260px; overflow-y: auto; }
+table.box { width: 100%; border-collapse: collapse; white-space: normal; }
+table.box td { padding: 4px 6px; border-bottom: 1px solid var(--line); }
+table.box td:first-child { color: var(--muted); }
+.list { list-style: none; padding: 0; margin: 8px 0; }
+.list li {
+  display: flex; justify-content: space-between; gap: 8px; padding: 12px;
+  border: 1px solid var(--line); border-radius: 10px; margin-bottom: 6px; cursor: pointer;
+  background: var(--bg);
+}
+.list li.sel { border-color: var(--accent); outline: 2px solid var(--accent); }
+.list .meta { color: var(--muted); white-space: nowrap; }
+.status { margin: 8px 0 0; color: var(--muted); }
+.status.ok { color: var(--ok); }
+.status.err { color: var(--err); }
+.banner { border-radius: 10px; padding: 10px 12px; margin: 0 0 12px; }
+.banner.error { background: var(--err-bg); color: var(--err); }
+.banner.info { background: var(--info-bg); }
+.hint { color: var(--muted); margin: 0 0 8px; }
+.small { font-size: .85rem; text-align: center; }
+code { font-family: ui-monospace, Menlo, Consolas, monospace; }
+/* Unsichtbares Benutzerfeld: nur damit der Passwortmanager den Code einem Eintrag zuordnet */
+.hiddenUser { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+#rCodeOut { word-break: break-all; }
+</style>
+</head>
+<body>
+<main>
+  <h1>T190 Verbindung</h1>
+
+  <div id="nobt" class="banner error" hidden>
+    Dieser Browser kann kein Bluetooth. Bitte <b>Bluefy</b> (iPhone) oder <b>Chrome/Edge</b> (Windows) verwenden.
+  </div>
+  <div id="insecure" class="banner error" hidden>
+    Web Bluetooth braucht HTTPS oder <code>http://localhost</code>. Diese Seite ist über eine unsichere Adresse geöffnet.
+  </div>
+
+  <section>
+    <h2>Verbindung</h2>
+    <p class="hint">Zuerst am ESP die <b>USER-Taste kurz drücken</b> – das Gerät ist dann 60&nbsp;s sichtbar.</p>
+    <div class="row">
+      <button id="btnConnect" class="primary">Verbinden</button>
+      <button id="btnReconnect">Neu verbinden</button>
+      <button id="btnDisconnect">Trennen</button>
+    </div>
+    <p id="status" class="status">Nicht verbunden.</p>
+    <p id="pairHint" class="banner info" hidden>
+      Gleich fragt das Handy nach einem Code: <b>den 6-stelligen Passkey vom ESP-Display eingeben</b>.
+    </p>
+  </section>
+
+  <section>
+    <h2>Fernzugriff (Internet)</h2>
+    <p class="hint">Ohne Bluetooth, auch unterwegs – solange der ESP im WLAN ist.
+      <b>Fernzugriffs-Code aus dem Passwortmanager</b> einfügen.</p>
+    <!-- method="dialog": das Formular kann NIE etwas verschicken (Code nie in einer Adresse) -->
+    <form id="remoteForm" method="dialog" autocomplete="on">
+      <input class="hiddenUser" type="text" name="username" autocomplete="username" value="T190 Fernzugriff" readonly tabindex="-1" aria-hidden="true">
+      <label>Fernzugriffs-Code
+        <input id="rCode" name="password" type="password" autocomplete="current-password" autocapitalize="off" spellcheck="false">
+      </label>
+      <div class="row">
+        <button id="btnRemote" class="primary" type="submit">Über Internet verbinden</button>
+        <button id="btnRemoteOff" type="button">Trennen</button>
+      </div>
+    </form>
+    <p id="remoteState" class="status"></p>
+  </section>
+
+  <section class="needconn">
+    <h2>Info</h2>
+    <button id="btnInfo">Info abrufen</button>
+    <pre id="info" class="box"></pre>
+  </section>
+
+  <section class="needconn bleonly">
+    <h2>WLAN einrichten</h2>
+    <button id="btnScan">Netze suchen</button>
+    <ul id="nets" class="list"></ul>
+    <label>SSID
+      <input id="ssid" type="text" maxlength="32" autocomplete="off" autocapitalize="off" spellcheck="false">
+    </label>
+    <label>Passwort
+      <input id="pw" type="password" maxlength="63" autocomplete="off" autocapitalize="off" spellcheck="false">
+    </label>
+    <label class="check"><input id="showPw" type="checkbox"> Passwort anzeigen</label>
+    <label class="check"><input id="openNet" type="checkbox"> Offenes Netz (ohne Passwort)</label>
+    <label class="check"><input id="save" type="checkbox" checked> Auf dem ESP speichern (verschlüsselt)</label>
+    <div class="row">
+      <button id="btnWifiConnect" class="primary">WLAN verbinden</button>
+      <button id="btnWifiStatus">Status</button>
+      <button id="btnWifiDisconnect">Trennen</button>
+      <button id="btnWifiForget">Gespeicherte Daten löschen</button>
+    </div>
+    <p id="wifiState" class="status"></p>
+  </section>
+
+  <section class="needconn">
+    <h2>Live-Daten</h2>
+    <div class="row">
+      <label class="inline">Intervall (ms) <input id="interval" type="number" min="200" max="60000" step="100" value="1000"></label>
+      <button id="btnTelStart">Start</button>
+      <button id="btnTelStop">Stopp</button>
+    </div>
+    <table id="telTable" class="box"><tbody></tbody></table>
+    <p class="hint">„simulated: true“ = Testdaten, kein echter Sensor.</p>
+  </section>
+
+  <section class="needconn">
+    <h2>Befehle</h2>
+    <div class="row">
+      <button id="btnLedOn">LED an</button>
+      <button id="btnLedOff">LED aus</button>
+      <button id="btnPing">Ping</button>
+      <button id="btnEcho">Echo</button>
+    </div>
+    <label>Text aufs Display (max. 64 Zeichen)
+      <input id="dispText" type="text" maxlength="64">
+    </label>
+    <button id="btnDisp">Senden</button>
+    <div class="row">
+      <button id="btnReboot" class="warn">ESP neu starten</button>
+      <button id="btnFactory" class="danger">Werksreset anfordern</button>
+    </div>
+    <p id="cmdResult" class="status"></p>
+  </section>
+
+  <section class="needconn bleonly">
+    <h2>Fernzugriff einrichten (nur über Bluetooth)</h2>
+    <p class="hint">Einmalig. Vorher in EMQX zwei Zugänge anlegen (Anleitung: docs/EMQX_EINRICHTEN.md).
+      Die Passwörter kommen aus deinem Passwortmanager und werden hier nicht gespeichert.</p>
+    <label>Broker-Adresse
+      <input id="rHost" type="text" placeholder="abc123.ala.eu-central-1.emqxsl.com" autocomplete="off" autocapitalize="off" spellcheck="false">
+    </label>
+    <label>EMQX-Benutzer des ESP
+      <input id="rEspUser" type="text" value="t190-esp" autocomplete="off" autocapitalize="off" spellcheck="false">
+    </label>
+    <label>EMQX-Passwort des ESP
+      <input id="rEspPw" type="password" autocomplete="off" autocapitalize="off" spellcheck="false">
+    </label>
+    <label>EMQX-Benutzer des Handys
+      <input id="rPhoneUser" type="text" value="t190-handy" autocomplete="off" autocapitalize="off" spellcheck="false">
+    </label>
+    <label>EMQX-Passwort des Handys (kommt in den Code)
+      <input id="rPhonePw" type="password" autocomplete="off" autocapitalize="off" spellcheck="false">
+    </label>
+    <div class="row">
+      <button id="btnRSetup" class="primary">Einrichten</button>
+      <button id="btnRStatus">Status</button>
+      <button id="btnRNewKey">Neuer Code</button>
+    </div>
+    <div class="row">
+      <button id="btnROn">Einschalten</button>
+      <button id="btnROff">Ausschalten</button>
+      <button id="btnRForget" class="danger">Fernzugriff löschen</button>
+    </div>
+    <p id="rSetupState" class="status"></p>
+    <div id="rCodeBox" hidden>
+      <p class="banner info">Das ist dein <b>Fernzugriffs-Code</b>. Jetzt kopieren und <b>im Passwortmanager speichern</b>
+        (z. B. Eintrag „T190 Fernzugriff“). Er ist geheim wie ein Passwort und wird nirgends gespeichert.</p>
+      <textarea id="rCodeOut" rows="4" readonly spellcheck="false"></textarea>
+      <div class="row">
+        <button id="btnRCopy">Kopieren</button>
+        <button id="btnRHide">Ausblenden</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="needconn">
+    <h2>Rohkonsole</h2>
+    <textarea id="raw" rows="3" spellcheck="false">{"cmd": "echo", "args": {"test": 1}}</textarea>
+    <button id="btnRaw">Senden</button>
+    <pre id="rawOut" class="box"></pre>
+  </section>
+
+  <section>
+    <h2>Protokoll</h2>
+    <pre id="log" class="box log"></pre>
+  </section>
+  <p class="hint small">Diese Seite speichert nichts (keine Cookies, kein Speicher). Daten gehen nur zwischen diesem Gerät
+    und dem ESP – beim Fernzugriff über den EMQX-Broker, aber Ende-zu-Ende verschlüsselt.</p>
+</main>
+<script>
+/* protocol.js - gleiches Framing wie shared/protocol.py (Python).
+ *
+ * Paket: Byte 0 = Header (Bit 7 START, Bit 6 END, Bits 0-5 Sequenz 0..63),
+ *        danach Nutzdaten (Teil einer UTF-8-JSON-Nachricht).
+ * Getestet in Node: node tests/test_protocol_js.mjs (gleiche Testvektoren).
+ * Laeuft im Browser als normales <script> (globales T190Protocol) und in Node.
+ */
+(function (root) {
+  "use strict";
+
+  const PROTOCOL_VERSION = 1;
+  const SERVICE_UUID = "9246b0ac-99f4-4a23-9933-b7fdcecbb197";
+  const RX_UUID = "f4b624f1-287a-4f93-b385-48bd0bf20551"; // App -> ESP (Write)
+  const TX_UUID = "f7c8b7e9-179e-45b9-8c81-c62017444169"; // ESP -> App (Notify)
+
+  const FLAG_START = 0x80;
+  const FLAG_END = 0x40;
+  const SEQ_MASK = 0x3f;
+  const DEFAULT_MAX_MESSAGE = 1024;
+  const DEFAULT_TIMEOUT_MS = 2000;
+  const MIN_PACKET = 2;
+  const SAFE_PACKET = 20;
+
+  const ERR = {
+    GAP: "gap", OVERFLOW: "overflow", TIMEOUT: "timeout",
+    ORPHAN: "orphan", DUP_START: "dup_start", EMPTY: "empty",
+  };
+
+  function split(message, maxPayload) {
+    if (maxPayload < MIN_PACKET) throw new Error("maxPayload zu klein");
+    const per = maxPayload - 1;
+    const n = message.length;
+    if (n === 0) return [Uint8Array.of(FLAG_START | FLAG_END)];
+    const out = [];
+    let pos = 0;
+    let seq = 0;
+    while (pos < n) {
+      const end = Math.min(pos + per, n);
+      let header = seq & SEQ_MASK;
+      if (pos === 0) header |= FLAG_START;
+      if (end === n) header |= FLAG_END;
+      const pk = new Uint8Array(1 + end - pos);
+      pk[0] = header;
+      pk.set(message.subarray(pos, end), 1);
+      out.push(pk);
+      pos = end;
+      seq += 1;
+    }
+    return out;
+  }
+
+  class Reassembler {
+    constructor(maxMessage = DEFAULT_MAX_MESSAGE, timeoutMs = DEFAULT_TIMEOUT_MS) {
+      this.maxMessage = maxMessage;
+      this.timeoutMs = timeoutMs;
+      this.buf = null;      // Array von Uint8Array-Teilen
+      this.len = 0;
+      this.expect = 0;
+      this.last = 0;
+      this.errors = [];
+      this.errorCount = 0;
+    }
+    reset() { this.buf = null; this.len = 0; }
+    inProgress() { return this.buf !== null; }
+    takeErrors() { const e = this.errors; this.errors = []; return e; }
+    _fail(code) {
+      this.buf = null; this.len = 0;
+      if (this.errors.length < 8) this.errors.push(code);
+      this.errorCount += 1;
+    }
+    checkTimeout(now = Date.now()) {
+      if (this.buf === null) return false;
+      if (now - this.last > this.timeoutMs) { this._fail(ERR.TIMEOUT); return true; }
+      return false;
+    }
+    feed(packet, now = Date.now()) {
+      if (!packet || packet.length === 0) { this._fail(ERR.EMPTY); return null; }
+      this.checkTimeout(now);
+      const header = packet[0];
+      const seq = header & SEQ_MASK;
+      const payload = packet.subarray(1);
+      if (header & FLAG_START) {
+        if (this.buf !== null) this._fail(ERR.DUP_START);
+        this.buf = []; this.len = 0;
+      } else if (this.buf === null) {
+        this._fail(ERR.ORPHAN); return null;
+      } else if (seq !== this.expect) {
+        this._fail(ERR.GAP); return null;
+      }
+      if (this.len + payload.length > this.maxMessage) { this._fail(ERR.OVERFLOW); return null; }
+      this.buf.push(payload.slice());
+      this.len += payload.length;
+      this.expect = (seq + 1) & SEQ_MASK;
+      this.last = now;
+      if (header & FLAG_END) {
+        const msg = new Uint8Array(this.len);
+        let o = 0;
+        for (const part of this.buf) { msg.set(part, o); o += part.length; }
+        this.buf = null; this.len = 0;
+        return msg;
+      }
+      return null;
+    }
+  }
+
+  const enc = new TextEncoder();
+  const dec = new TextDecoder("utf-8", { fatal: true });
+
+  function encode(obj) { return enc.encode(JSON.stringify(obj)); }
+
+  function decode(bytes) {
+    let obj;
+    try { obj = JSON.parse(dec.decode(bytes)); } catch (e) { throw new Error("kein gueltiges JSON"); }
+    if (obj === null || typeof obj !== "object" || Array.isArray(obj)) {
+      throw new Error("Nachricht ist kein Objekt");
+    }
+    return obj;
+  }
+
+  const ERR_TEXT = {
+    bad_request: "Ungültige Anfrage",
+    unsupported: "Nicht unterstützt",
+    busy: "Gerät ist beschäftigt",
+    wrong_password: "WLAN-Passwort falsch",
+    no_ap_found: "WLAN-Netz nicht gefunden",
+    connect_fail: "WLAN-Verbindung fehlgeschlagen",
+    timeout: "Zeitüberschreitung",
+    not_authorized: "Nicht autorisiert (nicht gekoppelt)",
+    internal: "Interner Fehler auf dem ESP",
+  };
+
+  const api = {
+    PROTOCOL_VERSION, SERVICE_UUID, RX_UUID, TX_UUID, FLAG_START, FLAG_END, SEQ_MASK,
+    MIN_PACKET, SAFE_PACKET, ERR, ERR_TEXT, split, Reassembler, encode, decode,
+  };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  root.T190Protocol = api;
+})(typeof globalThis !== "undefined" ? globalThis : this);
+</script>
+<script>
+/* e2e.js - Ende-zu-Ende-Verschluesselung fuer den Fernzugriff (Gegenstueck zu esp/e2e.py)
+ *
+ * Gleiches Format, gleiche Testvektoren (tests/vectors/e2e_vectors.json,
+ * gepruft in Node: node tests/test_remote_js.mjs). Nutzt nur WebCrypto
+ * (crypto.subtle): AES-256-CBC (PKCS#7 automatisch) und HMAC-SHA256.
+ * Speichert NICHTS.
+ */
+(function (root) {
+  "use strict";
+
+  const VERSION = 1, T_HELLO = 1, T_WELCOME = 2, T_DATA = 3;
+  const NONCE_LEN = 16, IV_LEN = 16, TAG_LEN = 32, MAX_PLAIN = 1024;
+  const CODE_PREFIX = "T190R1:";
+  const CODE_FIELDS = ["v", "h", "o", "a", "t", "u", "p", "k"];
+  const te = new TextEncoder();
+
+  function subtle() {
+    const c = (typeof crypto !== "undefined") ? crypto : root.crypto;
+    if (!c || !c.subtle) throw new Error("WebCrypto fehlt (Seite muss über HTTPS laufen)");
+    return c.subtle;
+  }
+  function randomBytes(n) {
+    const c = (typeof crypto !== "undefined") ? crypto : root.crypto;
+    return c.getRandomValues(new Uint8Array(n));
+  }
+  function cat(...parts) {
+    let n = 0;
+    for (const p of parts) n += p.length;
+    const out = new Uint8Array(n);
+    let o = 0;
+    for (const p of parts) { out.set(p, o); o += p.length; }
+    return out;
+  }
+  function u32(n) { return Uint8Array.of((n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255); }
+  function fromU32(b, o) { return ((b[o] << 24) >>> 0) + (b[o + 1] << 16) + (b[o + 2] << 8) + b[o + 3]; }
+  function eq(a, b) {
+    if (a.length !== b.length) return false;
+    let r = 0;
+    for (let i = 0; i < a.length; i++) r |= a[i] ^ b[i];
+    return r === 0;
+  }
+  function hex(b) { return Array.from(b, (x) => x.toString(16).padStart(2, "0")).join(""); }
+  function unhex(s) {
+    if (s.length % 2 || /[^0-9a-f]/i.test(s)) throw new Error("hex");
+    const out = new Uint8Array(s.length / 2);
+    for (let i = 0; i < out.length; i++) out[i] = parseInt(s.substr(2 * i, 2), 16);
+    return out;
+  }
+
+  async function hmac(key, msg) {
+    const k = await subtle().importKey("raw", key, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+    return new Uint8Array(await subtle().sign("HMAC", k, msg));
+  }
+  async function aesKey(key, use) {
+    return subtle().importKey("raw", key, { name: "AES-CBC" }, false, [use]);
+  }
+
+  const hsKey = (k) => hmac(k, te.encode("T190 hs v1"));
+
+  async function makeHello(k, nc, unixTime) {
+    const body = cat(Uint8Array.of(VERSION, T_HELLO), nc, u32(unixTime));
+    return cat(body, await hmac(await hsKey(k), body));
+  }
+
+  /** -> ns (Uint8Array) oder null */
+  async function parseWelcome(k, frame, nc) {
+    if (frame.length !== 2 + 2 * NONCE_LEN + TAG_LEN || frame[0] !== VERSION || frame[1] !== T_WELCOME) return null;
+    const body = frame.subarray(0, frame.length - TAG_LEN);
+    if (!eq(await hmac(await hsKey(k), body), frame.subarray(frame.length - TAG_LEN))) return null;
+    if (!eq(body.subarray(2, 2 + NONCE_LEN), nc)) return null;
+    return body.slice(2 + NONCE_LEN);
+  }
+
+  async function sessionKeys(k, nc, ns) {
+    const s = await hmac(k, cat(te.encode("T190 session v1"), nc, ns));
+    const out = {};
+    for (const n of ["down_enc", "down_mac", "up_enc", "up_mac"]) out[n] = await hmac(s, te.encode(n.replace("_", " ")));
+    return out;
+  }
+
+  function frameType(f) { return (f.length >= 2 && f[0] === VERSION) ? f[1] : null; }
+
+  class Session {
+    /** sendDir = "down" im Handy */
+    constructor(keys, sendDir) {
+      const recv = sendDir === "up" ? "down" : "up";
+      this.sEnc = keys[sendDir + "_enc"]; this.sMac = keys[sendDir + "_mac"];
+      this.rEnc = keys[recv + "_enc"]; this.rMac = keys[recv + "_mac"];
+      this.sendCtr = 0; this.recvCtr = 0;
+    }
+    /** Achtung: Aufrufe nacheinander (await) - die Zaehler-Reihenfolge muss stimmen. */
+    async seal(plain, iv) {
+      if (plain.length > MAX_PLAIN) throw new Error("Nachricht zu lang");
+      if (iv.length !== IV_LEN) throw new Error("iv");
+      const ctr = ++this.sendCtr;
+      const ct = new Uint8Array(await subtle().encrypt({ name: "AES-CBC", iv }, await aesKey(this.sEnc, "encrypt"), plain));
+      const body = cat(Uint8Array.of(VERSION, T_DATA), u32(ctr), iv, ct);
+      return cat(body, await hmac(this.sMac, body));
+    }
+    /** -> {plain} oder {err}. Tag wird ZUERST geprueft. */
+    async open(frame) {
+      if (frame.length < 6 + IV_LEN + 16 + TAG_LEN || frame[0] !== VERSION || frame[1] !== T_DATA) return { err: "format" };
+      const body = frame.subarray(0, frame.length - TAG_LEN);
+      if (!eq(await hmac(this.rMac, body), frame.subarray(frame.length - TAG_LEN))) return { err: "tag" };
+      const ctr = fromU32(body, 2);
+      if (ctr <= this.recvCtr) return { err: "replay" };
+      const ct = body.subarray(6 + IV_LEN);
+      if (ct.length % 16) return { err: "format" };
+      let plain;
+      try {
+        plain = new Uint8Array(await subtle().decrypt({ name: "AES-CBC", iv: body.slice(6, 6 + IV_LEN) },
+          await aesKey(this.rEnc, "decrypt"), ct));
+      } catch (e) { return { err: "padding" }; }
+      this.recvCtr = ctr;
+      return { plain };
+    }
+  }
+
+  // ------------------------------------------------ Fernzugriffs-Code ------
+  function b64urlEncode(bytes) {
+    let s = "";
+    for (const b of bytes) s += String.fromCharCode(b);
+    return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+  function b64urlDecode(text) {
+    const s = atob(text.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((text.length + 3) % 4));
+    return Uint8Array.from(s, (c) => c.charCodeAt(0));
+  }
+  function buildCode(f) {
+    const o = { v: 1, h: f.h, o: f.o, a: f.a, t: f.t, u: f.u, p: f.p, k: f.k };
+    return CODE_PREFIX + b64urlEncode(te.encode(JSON.stringify(o)));
+  }
+  /** -> Felder oder Error (Meldung ohne Inhalt) */
+  function parseCode(text) {
+    text = (text || "").trim();
+    if (!text.startsWith(CODE_PREFIX)) throw new Error("Kein T190-Fernzugriffs-Code (beginnt mit T190R1:)");
+    let d;
+    try { d = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(b64urlDecode(text.slice(CODE_PREFIX.length)))); }
+    catch (e) { throw new Error("Code beschädigt (unvollständig kopiert?)"); }
+    if (!d || typeof d !== "object" || d.v !== 1 || CODE_FIELDS.some((f) => !(f in d))) throw new Error("Code unvollständig");
+    if (typeof d.k !== "string" || !/^[0-9a-f]{64}$/.test(d.k)) throw new Error("Schlüssel im Code ungültig");
+    return d;
+  }
+
+  const api = {
+    VERSION, T_HELLO, T_WELCOME, T_DATA, NONCE_LEN, IV_LEN, TAG_LEN, MAX_PLAIN,
+    randomBytes, hex, unhex, cat, hmac, makeHello, parseWelcome, sessionKeys, frameType,
+    Session, buildCode, parseCode,
+  };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else root.T190E2E = api;
+})(typeof self !== "undefined" ? self : this);
+</script>
+<script>
+/* mqtt.js - kleiner MQTT-3.1.1-Client ueber WebSocket (nur QoS 0)
+ *
+ * Gegenstueck zu esp/mqtt.py, gleiche Testvektoren (tests/vectors/e2e_vectors.json).
+ * Verbindet sich mit wss://<broker>:8084/mqtt (EMQX), Unterprotokoll "mqtt".
+ */
+(function (root) {
+  "use strict";
+
+  const MAX_PACKET = 4096;
+  const RC_TEXT = {
+    1: "Protokollversion abgelehnt", 2: "Client-ID abgelehnt", 3: "Broker nicht verfügbar",
+    4: "Benutzername oder Passwort falsch", 5: "nicht berechtigt (Benutzer/Rechte in EMQX prüfen)",
+  };
+  const te = new TextEncoder();
+
+  function encLen(n) {
+    const out = [];
+    do {
+      let b = n % 128;
+      n = Math.floor(n / 128);
+      if (n) b |= 0x80;
+      out.push(b);
+    } while (n);
+    return Uint8Array.from(out);
+  }
+  function cat(...parts) {
+    let n = 0;
+    for (const p of parts) n += p.length;
+    const out = new Uint8Array(n);
+    let o = 0;
+    for (const p of parts) { out.set(p, o); o += p.length; }
+    return out;
+  }
+  function str(s) {
+    const b = typeof s === "string" ? te.encode(s) : s;
+    return cat(Uint8Array.of(b.length >> 8, b.length & 255), b);
+  }
+  function packet(first, body) { return cat(Uint8Array.of(first), encLen(body.length), body); }
+
+  function connectPacket(cid, user, pw, keepalive) {
+    let flags = 0x02;
+    let payload = str(cid);
+    if (user != null) { flags |= 0x80; payload = cat(payload, str(user)); }
+    if (pw != null) { flags |= 0x40; payload = cat(payload, str(pw)); }
+    return packet(0x10, cat(str("MQTT"), Uint8Array.of(4, flags, keepalive >> 8, keepalive & 255), payload));
+  }
+  function subscribePacket(pid, topic) {
+    return packet(0x82, cat(Uint8Array.of(pid >> 8, pid & 255), str(topic), Uint8Array.of(0)));
+  }
+  function publishPacket(topic, payload, retain) {
+    return packet(0x30 | (retain ? 1 : 0), cat(str(topic), payload));
+  }
+  function parsePublish(first, body) {
+    if ((first >> 1) & 3) throw new Error("QoS > 0 nicht unterstützt");
+    const n = (body[0] << 8) | body[1];
+    return { topic: new TextDecoder().decode(body.subarray(2, 2 + n)), payload: body.slice(2 + n), retain: !!(first & 1) };
+  }
+
+  /** Zerlegt einen Bytestrom in MQTT-Pakete (WebSocket-Nachrichten koennen Pakete teilen/buendeln). */
+  class Parser {
+    constructor() { this.buf = new Uint8Array(0); }
+    feed(chunk) {
+      this.buf = cat(this.buf, chunk);
+      const out = [];
+      for (;;) {
+        const b = this.buf;
+        if (b.length < 2) break;
+        let n = 0, mult = 1, i = 1, done = false;
+        for (; i < b.length && i <= 4; i++) {
+          n += (b[i] & 127) * mult;
+          mult *= 128;
+          if (!(b[i] & 128)) { done = true; i++; break; }
+        }
+        if (!done) { if (i > 4) throw new Error("MQTT-Länge ungültig"); break; }
+        if (n > MAX_PACKET) throw new Error("MQTT-Paket zu groß");
+        if (b.length < i + n) break;
+        out.push({ first: b[0], body: b.slice(i, i + n) });
+        this.buf = b.slice(i + n);
+      }
+      return out;
+    }
+  }
+
+  class MqttWs {
+    /** opts: onMessage(topic, payload, retain), onClose(reason) */
+    constructor(url, opts) {
+      this.url = url;
+      this.opts = opts || {};
+      this.ws = null;
+      this.parser = new Parser();
+      this.waiters = [];
+      this.pid = 0;
+      this.pingTimer = null;
+      this.lastRx = 0;
+      this.closed = false;
+    }
+    _expect(type, timeoutMs, what) {
+      return new Promise((resolve, reject) => {
+        const w = { type, resolve, reject };
+        w.timer = setTimeout(() => {
+          this.waiters = this.waiters.filter((x) => x !== w);
+          reject(new Error("Keine Antwort vom Broker (" + what + ")"));
+        }, timeoutMs);
+        this.waiters.push(w);
+      });
+    }
+    _onData(data) {
+      let pks;
+      try { pks = this.parser.feed(new Uint8Array(data)); }
+      catch (e) { this.close("Protokollfehler: " + e.message); return; }
+      this.lastRx = Date.now();
+      for (const p of pks) {
+        const type = p.first & 0xf0;
+        if (type === 0x30) {
+          let m;
+          try { m = parsePublish(p.first, p.body); } catch (e) { continue; }
+          if (this.opts.onMessage) this.opts.onMessage(m.topic, m.payload, m.retain);
+          continue;
+        }
+        const i = this.waiters.findIndex((w) => w.type === type);
+        if (i >= 0) {
+          const w = this.waiters.splice(i, 1)[0];
+          clearTimeout(w.timer);
+          w.resolve(p.body);
+        }
+      }
+    }
+    async connect(cid, user, pw, keepalive) {
+      keepalive = keepalive || 60;
+      await new Promise((resolve, reject) => {
+        let ws;
+        try { ws = new WebSocket(this.url, ["mqtt"]); } catch (e) { reject(e); return; }
+        ws.binaryType = "arraybuffer";
+        this.ws = ws;
+        const timer = setTimeout(() => { reject(new Error("Broker nicht erreichbar (Zeitüberschreitung)")); try { ws.close(); } catch (_) { /* egal */ } }, 15000);
+        ws.onopen = () => { clearTimeout(timer); resolve(); };
+        ws.onerror = () => { clearTimeout(timer); reject(new Error("Broker nicht erreichbar (Adresse/Internet prüfen)")); };
+        ws.onclose = (ev) => {
+          clearTimeout(timer);
+          for (const w of this.waiters) { clearTimeout(w.timer); w.reject(new Error("Verbindung zum Broker geschlossen")); }
+          this.waiters = [];
+          this._stopPing();
+          if (!this.closed && this.opts.onClose) this.opts.onClose("Broker hat die Verbindung beendet (Code " + ev.code + ")");
+          this.closed = true;
+        };
+        ws.onmessage = (ev) => this._onData(ev.data);
+      });
+      const ack = this._expect(0x20, 10000, "CONNACK");
+      this._send(connectPacket(cid, user, pw, keepalive));
+      const body = await ack;
+      if (body.length !== 2) throw new Error("Ungültige Antwort vom Broker");
+      if (body[1] !== 0) { this.close(); throw new Error("Anmeldung abgelehnt: " + (RC_TEXT[body[1]] || "Code " + body[1])); }
+      this.pingTimer = setInterval(() => {
+        if (Date.now() - this.lastRx > keepalive * 1500) { this.close("Broker antwortet nicht mehr"); return; }
+        this._send(Uint8Array.of(0xc0, 0x00));
+      }, keepalive * 500);
+    }
+    async subscribe(topic) {
+      this.pid = (this.pid % 65535) + 1;
+      const ack = this._expect(0x90, 10000, "SUBACK");
+      this._send(subscribePacket(this.pid, topic));
+      const body = await ack;
+      if (body.length !== 3 || body[2] === 0x80) throw new Error("Abo abgelehnt für " + topic + " (Rechte in EMQX prüfen)");
+    }
+    publish(topic, payload, retain) { this._send(publishPacket(topic, payload, retain)); }
+    _send(bytes) {
+      if (!this.ws || this.ws.readyState !== 1) throw new Error("Keine Verbindung zum Broker");
+      this.ws.send(bytes);
+    }
+    _stopPing() { if (this.pingTimer) { clearInterval(this.pingTimer); this.pingTimer = null; } }
+    close(reason) {
+      const notify = !this.closed && reason && this.opts.onClose;
+      this.closed = true;
+      this._stopPing();
+      if (this.ws) {
+        try { if (this.ws.readyState === 1) this.ws.send(Uint8Array.of(0xe0, 0x00)); } catch (_) { /* egal */ }
+        try { this.ws.close(); } catch (_) { /* egal */ }
+      }
+      if (notify) this.opts.onClose(reason);
+    }
+  }
+
+  const api = { encLen, connectPacket, subscribePacket, publishPacket, parsePublish, Parser, MqttWs, MAX_PACKET };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else root.T190Mqtt = api;
+})(typeof self !== "undefined" ? self : this);
+</script>
+<script>
+/* app.js - Web-App fuer den T190 (Web Bluetooth, Bluefy / Chrome / Edge)
+ *          + Fernzugriff ueber das Internet (MQTT/WebSocket, Ende-zu-Ende verschluesselt)
+ *
+ * Speichert NICHTS (kein localStorage, sessionStorage, Cookies).
+ * Passwort- und Codefelder werden nach dem Benutzen geleert.
+ */
+"use strict";
+(function () {
+  const P = window.T190Protocol;
+  const E = window.T190E2E;
+  const M = window.T190Mqtt;
+  const $ = (id) => document.getElementById(id);
+  const DEFAULT_TIMEOUT = 10000;
+  const REMOTE_TIMEOUT = 15000;
+  const LONG_TIMEOUT = { "wifi.connect": 30000, "wifi.scan": 20000 };
+  const CHUNK = P.SAFE_PACKET;          // Web Bluetooth kennt die MTU nicht -> 20 Bytes
+  const NOT_FOUND = "Gerät nicht gefunden: am ESP die USER-Taste kurz drücken und innerhalb von 60 s verbinden.";
+  const BROKER_RE = /^[a-z0-9-]+(\.[a-z0-9-]+)*\.emqxsl\.com$/;
+
+  let device = null, rx = null, tx = null;
+  let connected = false;
+  let mode = null;                      // null | "ble" | "remote"
+  let rm = null;                        // Zustand des Fernzugriffs
+  let nextId = 1;
+  const pending = new Map();
+  const reasm = new P.Reassembler();
+  let writeChain = Promise.resolve();
+  let userDisconnect = false;
+  const nets = new Map();
+  let telCount = 0;
+
+  // ------------------------------------------------------------ Hilfen ---
+  function log(text) {
+    const t = new Date().toLocaleTimeString("de-DE");
+    const el = $("log");
+    el.textContent += t + "  " + text + "\n";
+    el.scrollTop = el.scrollHeight;
+  }
+  function setStatus(text, cls) {
+    const el = $("status");
+    el.textContent = text;
+    el.className = "status" + (cls ? " " + cls : "");
+  }
+  function setText(id, text, cls) {
+    const el = $(id);
+    el.textContent = text;
+    if (cls !== undefined) el.className = "status" + (cls ? " " + cls : "");
+  }
+  function errText(e) {
+    if (e && e.code && P.ERR_TEXT[e.code]) return P.ERR_TEXT[e.code] + (e.msg ? " – " + e.msg : "");
+    return (e && e.message) ? e.message : String(e);
+  }
+  function setConnected(on) {
+    connected = on;
+    if (!on) mode = null;
+    const remote = mode === "remote";
+    document.querySelectorAll("section.needconn").forEach((s) => s.classList.toggle("disabled", !on));
+    document.querySelectorAll("section.bleonly").forEach((s) => s.classList.toggle("disabled", !on || remote));
+    $("btnDisconnect").disabled = !on || remote;
+    $("btnConnect").disabled = on;
+    $("btnReconnect").disabled = on || !device;
+    $("btnRemote").disabled = on;
+    $("btnRemoteOff").disabled = !rm;
+  }
+  function failPending(text) {
+    for (const [, p] of pending) p.reject(new Error(text));
+    pending.clear();
+  }
+  function guard(fn) {
+    return async (ev) => {
+      try { await fn(ev); } catch (e) { log("Fehler: " + errText(e)); }
+    };
+  }
+
+  // ------------------------------------------------------ Verbinden ------
+  async function connect() {
+    if (!navigator.bluetooth) { $("nobt").hidden = false; return; }
+    if (rm) { setStatus("Erst den Fernzugriff trennen.", "err"); return; }
+    setStatus("Gerät auswählen …");
+    try {
+      device = await navigator.bluetooth.requestDevice({
+        filters: [{ services: [P.SERVICE_UUID] }, { namePrefix: "T190-" }],
+        optionalServices: [P.SERVICE_UUID],
+      });
+    } catch (e) {
+      if (e.name === "NotFoundError") { setStatus("Abgebrochen oder kein Gerät. " + NOT_FOUND, "err"); }
+      else { setStatus("Auswahl fehlgeschlagen: " + errText(e), "err"); }
+      return;
+    }
+    device.addEventListener("gattserverdisconnected", onDisconnected);
+    await openGatt();
+  }
+
+  async function openGatt() {
+    userDisconnect = false;
+    reasm.reset();
+    setStatus("Verbinde mit " + (device.name || "Gerät") + " …");
+    let server;
+    try {
+      server = await device.gatt.connect();
+      const svc = await server.getPrimaryService(P.SERVICE_UUID);
+      rx = await svc.getCharacteristic(P.RX_UUID);
+      tx = await svc.getCharacteristic(P.TX_UUID);
+    } catch (e) {
+      setStatus("Verbindung fehlgeschlagen (" + errText(e) + "). " + NOT_FOUND, "err");
+      return;
+    }
+    // Pairing: Zugriff auf geschuetzte Characteristic loest es aus
+    $("pairHint").hidden = false;
+    setStatus("Koppeln … Passkey vom ESP-Display eingeben.");
+    try {
+      await tx.readValue();
+    } catch (e) {
+      $("pairHint").hidden = true;
+      setStatus("Koppeln fehlgeschlagen oder abgebrochen (" + errText(e) + "). " +
+        "Tipp: Gerät in den Bluetooth-Einstellungen „ignorieren“/entfernen, am ESP Taste drücken, neu verbinden.", "err");
+      try { device.gatt.disconnect(); } catch (_) { /* egal */ }
+      return;
+    }
+    $("pairHint").hidden = true;
+    try {
+      await tx.startNotifications();
+      tx.addEventListener("characteristicvaluechanged", onNotify);
+    } catch (e) {
+      setStatus("Benachrichtigungen nicht möglich: " + errText(e), "err");
+      return;
+    }
+    mode = "ble";
+    setConnected(true);
+    setStatus("Verbunden mit " + (device.name || "Gerät") + " (gekoppelt)", "ok");
+    log("Verbunden.");
+    getInfo().catch((e) => log("Info: " + errText(e)));
+  }
+
+  function onDisconnected() {
+    if (mode === "remote") return;          // alte BLE-Verbindung, Fernzugriff laeuft
+    setConnected(false);
+    failPending("Verbindung getrennt");
+    if (tx) tx.removeEventListener("characteristicvaluechanged", onNotify);
+    if (userDisconnect) { setStatus("Getrennt."); }
+    else {
+      setStatus("Verbindung verloren. „Neu verbinden“ (vorher evtl. am ESP Taste drücken).", "err");
+      log("Verbindung unerwartet getrennt.");
+    }
+  }
+
+  function disconnect() {
+    userDisconnect = true;
+    if (device && device.gatt.connected) device.gatt.disconnect();
+  }
+
+  async function reconnect() {
+    if (!device) return connect();
+    await openGatt();
+  }
+
+  // -------------------------------------------------------- Empfangen ----
+  function onNotify(ev) {
+    const v = ev.target.value;
+    const pk = new Uint8Array(v.buffer, v.byteOffset, v.byteLength);
+    const msg = reasm.feed(pk);
+    for (const e of reasm.takeErrors()) log("Rahmenfehler: " + e);
+    if (msg === null) return;
+    let obj;
+    try { obj = P.decode(msg); } catch (e) { log("Ungültige Nachricht: " + e.message); return; }
+    handleMessage(obj);
+  }
+
+  function handleMessage(obj) {
+    if ("id" in obj && "ok" in obj && pending.has(obj.id)) {
+      const p = pending.get(obj.id);
+      pending.delete(obj.id);
+      p.resolve(obj);
+      return;
+    }
+    if (obj.ev) onEvent(obj); else log("Unzugeordnet: " + JSON.stringify(obj));
+  }
+
+  function onEvent(m) {
+    const d = m.data || {};
+    switch (m.ev) {
+      case "telemetry": showTelemetry(d); break;
+      case "wifi.scan.item": addNet(d); break;
+      case "wifi.scan.done": setText("wifiState", d.count + " Netze gefunden", ""); break;
+      case "wifi.status":
+        if (d.state === "connecting") setText("wifiState", "Verbinde mit " + d.ssid + " … " + (d.elapsed_s || 0) + " s", "");
+        else if (d.state === "connected") setText("wifiState", "Verbunden mit " + d.ssid + ", IP " + d.ip, "ok");
+        break;
+      case "warn": {
+        const t = { frame_error: "Übertragungsfehler – Befehl ggf. wiederholen",
+          radio_coexistence: "BLE wurde während WLAN-Aktivität getrennt (Funk-Koexistenz)",
+          bad_json: "ESP hat ungültiges JSON erhalten" }[d.code] || d.code;
+        log("Warnung vom ESP: " + t);
+        break;
+      }
+      default: log("Ereignis: " + JSON.stringify(m));
+    }
+  }
+
+  // ---------------------------------------------------------- Senden -----
+  function writePacket(pk) {
+    if (rx.writeValueWithResponse) return rx.writeValueWithResponse(pk);
+    return rx.writeValue(pk);
+  }
+
+  function sendRaw(obj) {
+    if (!connected) return Promise.reject(new Error("Nicht verbunden"));
+    if (mode === "remote") return remoteSend(obj);
+    const packets = P.split(P.encode(obj), CHUNK);
+    // seriell: jedes Paket erst nach Abschluss des vorigen
+    const job = writeChain.then(async () => { for (const pk of packets) await writePacket(pk); });
+    writeChain = job.catch(() => {});
+    return job;
+  }
+
+  function request(cmd, args, timeoutMs) {
+    const id = nextId++;
+    const t = timeoutMs || LONG_TIMEOUT[cmd] || (mode === "remote" ? REMOTE_TIMEOUT : DEFAULT_TIMEOUT);
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        pending.delete(id);
+        if (mode === "remote") log("Keine Antwort über das Internet. Ist der ESP online? Sonst: Trennen und neu verbinden.");
+        reject(Object.assign(new Error("keine Antwort auf " + cmd), { code: "timeout" }));
+      }, t);
+      pending.set(id, {
+        resolve: (resp) => {
+          clearTimeout(timer);
+          if (resp.ok) resolve(resp.data || {});
+          else reject(Object.assign(new Error(resp.msg || resp.err), { code: resp.err, msg: resp.msg }));
+        },
+        reject: (e) => { clearTimeout(timer); reject(e); },
+      });
+      sendRaw({ id, cmd, args: args || {} }).catch((e) => {
+        clearTimeout(timer); pending.delete(id); reject(e);
+      });
+    });
+  }
+
+  // --------------------------------------------------------- Aktionen ----
+  async function getInfo() {
+    const d = await request("sys.info");
+    let text = "";
+    if (d.protocol !== P.PROTOCOL_VERSION) {
+      text += "!!! WARNUNG: Protokollversion ESP=" + d.protocol + ", Web-App=" + P.PROTOCOL_VERSION + " !!!\n\n";
+    }
+    for (const [k, v] of Object.entries(d)) text += k.padEnd(13) + " " + JSON.stringify(v) + "\n";
+    $("info").textContent = text;
+  }
+
+  function addNet(n) {
+    nets.set(n.ssid, n);
+    const li = document.createElement("li");
+    const a = document.createElement("span");
+    a.textContent = (n.secure ? "🔒 " : "🔓 ") + n.ssid;
+    const b = document.createElement("span");
+    b.className = "meta";
+    b.textContent = n.rssi + " dBm · " + n.auth;
+    li.append(a, b);
+    li.addEventListener("click", () => {
+      document.querySelectorAll("#nets li").forEach((x) => x.classList.remove("sel"));
+      li.classList.add("sel");
+      $("ssid").value = n.ssid;
+      $("openNet").checked = !n.secure;
+      openToggle();
+      if (n.secure) $("pw").focus();
+    });
+    $("nets").append(li);
+  }
+
+  async function wifiScan() {
+    $("nets").textContent = "";
+    nets.clear();
+    setText("wifiState", "Suche läuft … (ca. 5 s)", "");
+    try { await request("wifi.scan"); }
+    catch (e) { setText("wifiState", "Suche fehlgeschlagen: " + errText(e), "err"); }
+  }
+
+  function openToggle() {
+    const open = $("openNet").checked;
+    $("pw").disabled = open;
+    if (open) $("pw").value = "";
+  }
+
+  async function wifiConnect() {
+    const ssid = $("ssid").value.trim();
+    let pw = $("openNet").checked ? "" : $("pw").value;
+    if (!ssid) { setText("wifiState", "Bitte SSID eingeben oder ein Netz wählen.", "err"); return; }
+    if (new TextEncoder().encode(ssid).length > 32) { setText("wifiState", "SSID länger als 32 Bytes.", "err"); return; }
+    if (pw && (pw.length < 8 || pw.length > 63)) {
+      setText("wifiState", "Passwort muss 8 bis 63 Zeichen haben (oder „Offenes Netz“).", "err"); return;
+    }
+    const args = { ssid, password: pw || null, save: $("save").checked };
+    $("pw").value = "";            // sofort leeren
+    pw = null;
+    setText("wifiState", "Verbinde mit " + ssid + " …", "");
+    try {
+      const d = await request("wifi.connect", args);
+      setText("wifiState", "Verbunden mit " + d.ssid + ", IP " + d.ip + (d.saved ? " – gespeichert" : ""), "ok");
+    } catch (e) {
+      setText("wifiState", "WLAN-Fehler: " + errText(e), "err");
+    }
+    args.password = null;
+  }
+
+  async function wifiStatus() {
+    const d = await request("wifi.status");
+    if (d.connected) setText("wifiState", "Verbunden mit " + d.ssid + ", IP " + d.ip + ", Signal " + d.rssi + " dBm", "ok");
+    else setText("wifiState", "Nicht verbunden" + (d.saved ? " (gespeicherte Daten vorhanden)" : "") +
+      (d.last_error ? " – letzter Fehler: " + d.last_error : ""), "");
+  }
+
+  function showTelemetry(d) {
+    telCount++;
+    const body = $("telTable").tBodies[0];
+    body.textContent = "";
+    const add = (k, v) => {
+      const tr = body.insertRow();
+      tr.insertCell().textContent = k;
+      tr.insertCell().textContent = typeof v === "object" ? JSON.stringify(v) : String(v);
+    };
+    add("empfangen", telCount);
+    for (const [k, v] of Object.entries(d)) add(k, v);
+  }
+
+  async function simple(cmd, args, show) {
+    try {
+      const d = await request(cmd, args);
+      const t = show ? show(d) : cmd + ": " + JSON.stringify(d);
+      setText("cmdResult", t, "ok");
+      log(t);
+    } catch (e) {
+      setText("cmdResult", cmd + ": " + errText(e), "err");
+    }
+  }
+
+  async function rawSend() {
+    let obj;
+    try {
+      obj = JSON.parse($("raw").value);
+      if (obj === null || typeof obj !== "object" || Array.isArray(obj)) throw new Error("JSON-Objekt {…} erwartet");
+    } catch (e) { $("rawOut").textContent += "Kein gültiges JSON: " + e.message + "\n"; return; }
+    $("rawOut").textContent += ">> " + JSON.stringify(obj) + "\n";
+    if (typeof obj.cmd === "string") {
+      try {
+        const d = await request(obj.cmd, obj.args);
+        $("rawOut").textContent += "<< ok " + JSON.stringify(d) + "\n";
+      } catch (e) { $("rawOut").textContent += "<< Fehler " + errText(e) + "\n"; }
+    } else {
+      await sendRaw(obj);
+      $("rawOut").textContent += "(gesendet, keine Antwort erwartet)\n";
+    }
+  }
+
+  // ======================================================= Fernzugriff ====
+  // Ablauf: Code einfuegen -> MQTT ueber WebSocket zum Broker -> HELLO an den ESP
+  // -> WELCOME pruefen -> Sitzung (alles Ende-zu-Ende verschluesselt, e2e.js).
+  async function remoteConnect(ev) {
+    if (ev) ev.preventDefault();
+    if (connected || rm) { setText("remoteState", "Erst die bestehende Verbindung trennen.", "err"); return; }
+    let c;
+    try { c = E.parseCode($("rCode").value); }
+    catch (e) { setText("remoteState", e.message, "err"); return; }
+    finally { $("rCode").value = ""; }
+    if (!BROKER_RE.test(c.h)) { setText("remoteState", "Broker-Adresse im Code muss auf .emqxsl.com enden.", "err"); return; }
+    const st = { key: E.unhex(c.k), topic: c.t, session: null, nc: null, online: null,
+      helloTimer: null, rxChain: Promise.resolve(), txChain: Promise.resolve(), mqtt: null };
+    rm = st;
+    setConnected(false);
+    setText("remoteState", "Verbinde mit dem Broker …", "");
+    st.mqtt = new M.MqttWs("wss://" + c.h + ":" + c.o + c.a, {
+      onMessage: (t, p) => onRemoteMessage(st, t, p),
+      onClose: (why) => onRemoteClosed(st, why),
+    });
+    try {
+      await st.mqtt.connect("web-" + E.hex(E.randomBytes(4)), c.u, c.p, 60);
+      c.p = null;
+      await st.mqtt.subscribe(c.t + "/up");
+      await st.mqtt.subscribe(c.t + "/status");
+    } catch (e) {
+      st.mqtt.close();
+      if (rm === st) rm = null;
+      setConnected(false);
+      setText("remoteState", "Fehler: " + e.message, "err");
+      return;
+    }
+    if (rm !== st) return;
+    setText("remoteState", "Mit dem Broker verbunden – warte auf den ESP …", "");
+    st.helloTimer = setTimeout(() => sendHello(st), 3000);   // falls kein Status kommt
+  }
+
+  async function sendHello(st) {
+    if (rm !== st) return;
+    clearTimeout(st.helloTimer);
+    st.nc = E.randomBytes(E.NONCE_LEN);
+    const hello = await E.makeHello(st.key, st.nc, Math.floor(Date.now() / 1000));
+    try { st.mqtt.publish(st.topic + "/down", hello); } catch (e) { return; }
+    st.helloTimer = setTimeout(() => {
+      if (rm === st && !st.session) {
+        setText("remoteState", "Der ESP antwortet nicht. Mögliche Gründe: ESP nicht online, Code veraltet " +
+          "(„Neuer Code“ erzeugt?), Uhrzeit des Handys falsch.", "err");
+      }
+    }, 10000);
+  }
+
+  function onRemoteMessage(st, topic, payload) {
+    if (rm !== st) return;
+    if (topic === st.topic + "/status") {
+      const on = payload.length === 1 && payload[0] === 0x31;
+      const wasOff = st.online === false;
+      st.online = on;
+      if (!on) { setText("remoteState", "Der ESP ist gerade offline (kein Internet). Warte, bis er online ist …", "err"); return; }
+      if (!st.session || wasOff) {           // erstmals online oder neu gestartet: neue Sitzung
+        if (st.session) log("ESP war offline – neue Sitzung.");
+        st.session = null;
+        sendHello(st);
+      }
+      return;
+    }
+    if (topic !== st.topic + "/up") return;
+    st.rxChain = st.rxChain.then(() => onRemoteFrame(st, payload)).catch((e) => log("Fernzugriff: " + errText(e)));
+  }
+
+  async function onRemoteFrame(st, frame) {
+    if (rm !== st) return;
+    const t = E.frameType(frame);
+    if (t === E.T_WELCOME) {
+      if (!st.nc) return;
+      const ns = await E.parseWelcome(st.key, frame, st.nc);
+      if (!ns) return;                       // altes/fremdes WELCOME
+      st.session = new E.Session(await E.sessionKeys(st.key, st.nc, ns), "down");
+      st.nc = null;
+      st.txChain = Promise.resolve();
+      clearTimeout(st.helloTimer);
+      mode = "remote";
+      setConnected(true);
+      setText("remoteState", "Verbunden über das Internet (Ende-zu-Ende verschlüsselt).", "ok");
+      setStatus("Fernzugriff aktiv – Bluetooth wird nicht benutzt.", "ok");
+      log("Fernzugriff verbunden.");
+      getInfo().catch((e) => log("Info: " + errText(e)));
+      return;
+    }
+    if (t === E.T_DATA && st.session) {
+      const r = await st.session.open(frame);
+      if (r.err) { log("Nachricht verworfen (" + r.err + ")"); return; }
+      let obj;
+      try { obj = P.decode(r.plain); } catch (e) { log("Ungültige Nachricht"); return; }
+      handleMessage(obj);
+    }
+  }
+
+  function remoteSend(obj) {
+    const st = rm;
+    if (!st || !st.session) return Promise.reject(new Error("Nicht verbunden"));
+    const s = st.session;
+    // nacheinander verschluesseln + senden: Zaehler-Reihenfolge muss erhalten bleiben
+    const job = st.txChain.then(async () => {
+      const f = await s.seal(P.encode(obj), E.randomBytes(E.IV_LEN));
+      st.mqtt.publish(st.topic + "/down", f);
+    });
+    st.txChain = job.catch(() => {});
+    return job;
+  }
+
+  function remoteCleanup(st) {
+    clearTimeout(st.helloTimer);
+    st.key.fill(0);
+    st.session = null;
+    if (rm === st) rm = null;
+    if (mode === "remote") { setConnected(false); failPending("Fernzugriff getrennt"); }
+    else setConnected(connected);
+  }
+
+  function onRemoteClosed(st, why) {
+    if (rm !== st) return;
+    remoteCleanup(st);
+    setText("remoteState", "Getrennt: " + why, "err");
+    setStatus("Nicht verbunden.");
+  }
+
+  function remoteDisconnect() {
+    const st = rm;
+    if (!st) return;
+    remoteCleanup(st);
+    st.mqtt.close();
+    setText("remoteState", "Getrennt.", "");
+    setStatus("Nicht verbunden.");
+  }
+
+  // ------------------------------------- Fernzugriff einrichten (BLE) -----
+  function cleanHost(v) {
+    return v.trim().toLowerCase().replace(/^(mqtts?|wss?|https?):\/\//, "").split(/[:/]/)[0];
+  }
+  function showCode(d, phoneUser, phonePw) {
+    $("rCodeOut").value = E.buildCode({ h: d.host, o: d.ws_port, a: d.ws_path, t: d.topic, u: phoneUser, p: phonePw, k: d.key });
+    $("rCodeBox").hidden = false;
+  }
+  function phoneCreds() {
+    const u = $("rPhoneUser").value.trim(), p = $("rPhonePw").value;
+    if (!u || !p) throw new Error("Bitte Benutzer und Passwort des Handys (EMQX) eintragen – sie kommen in den Code.");
+    return [u, p];
+  }
+  async function remoteSetup() {
+    const host = cleanHost($("rHost").value);
+    const user = $("rEspUser").value.trim();
+    const pw = $("rEspPw").value;
+    if (!BROKER_RE.test(host)) { setText("rSetupState", "Broker-Adresse aus der EMQX-Konsole eintragen (endet auf .emqxsl.com).", "err"); return; }
+    if (!user || !pw) { setText("rSetupState", "Benutzer und Passwort des ESP (EMQX) eintragen.", "err"); return; }
+    let creds;
+    try { creds = phoneCreds(); } catch (e) { setText("rSetupState", e.message, "err"); return; }
+    $("rEspPw").value = "";
+    setText("rSetupState", "Richte ein …", "");
+    try {
+      const d = await request("remote.setup", { host, user, password: pw });
+      showCode(d, creds[0], creds[1]);
+      $("rPhonePw").value = "";
+      setText("rSetupState", "Eingerichtet. Der ESP verbindet sich jetzt mit EMQX (siehe Status).", "ok");
+    } catch (e) { setText("rSetupState", "Fehler: " + errText(e), "err"); }
+  }
+  async function remoteNewKey() {
+    let creds;
+    try { creds = phoneCreds(); } catch (e) { setText("rSetupState", e.message, "err"); return; }
+    if (!confirm("Neuen Fernzugriffs-Code erzeugen? Der alte Code funktioniert danach NICHT mehr.")) return;
+    try {
+      const d = await request("remote.new_key");
+      showCode(d, creds[0], creds[1]);
+      $("rPhonePw").value = "";
+      setText("rSetupState", "Neuer Code erzeugt – alten Eintrag im Passwortmanager ersetzen.", "ok");
+    } catch (e) { setText("rSetupState", "Fehler: " + errText(e), "err"); }
+  }
+  async function remoteStatus() {
+    try {
+      const d = await request("remote.status");
+      const names = { off: "ausgeschaltet", not_configured: "nicht eingerichtet", wait_wifi: "wartet auf WLAN",
+        connecting: "verbindet …", online: "online", error: "Fehler" };
+      let t = "Fernzugriff: " + (names[d.state] || d.state);
+      if (d.host) t += " · " + d.host + " · Kanal " + d.topic;
+      if (d.last_error) t += " · letzter Fehler: " + d.last_error;
+      setText("rSetupState", t, d.state === "online" ? "ok" : (d.state === "error" ? "err" : ""));
+    } catch (e) { setText("rSetupState", "Fehler: " + errText(e), "err"); }
+  }
+  async function remoteEnable(on) {
+    try { await request("remote.enable", { on }); setText("rSetupState", on ? "Eingeschaltet." : "Ausgeschaltet.", "ok"); }
+    catch (e) { setText("rSetupState", "Fehler: " + errText(e), "err"); }
+  }
+  async function remoteForget() {
+    if (!confirm("Fernzugriff auf dem ESP löschen (Zugangsdaten und Schlüssel)?")) return;
+    try { await request("remote.forget"); setText("rSetupState", "Fernzugriff gelöscht.", "ok"); hideCode(); }
+    catch (e) { setText("rSetupState", "Fehler: " + errText(e), "err"); }
+  }
+  async function copyCode() {
+    const el = $("rCodeOut");
+    try { await navigator.clipboard.writeText(el.value); setText("rSetupState", "Code kopiert – jetzt im Passwortmanager speichern.", "ok"); }
+    catch (e) { el.focus(); el.select(); setText("rSetupState", "Bitte den markierten Code von Hand kopieren.", ""); }
+  }
+  function hideCode() { $("rCodeOut").value = ""; $("rCodeBox").hidden = true; }
+
+  // ------------------------------------------------------------ Start ----
+  function init() {
+    if (!navigator.bluetooth) $("nobt").hidden = false;
+    if (!window.isSecureContext) $("insecure").hidden = false;
+    setConnected(false);
+    $("btnConnect").addEventListener("click", guard(connect));
+    $("btnReconnect").addEventListener("click", guard(reconnect));
+    $("btnDisconnect").addEventListener("click", disconnect);
+    $("btnInfo").addEventListener("click", guard(getInfo));
+    $("btnScan").addEventListener("click", guard(wifiScan));
+    $("showPw").addEventListener("change", () => { $("pw").type = $("showPw").checked ? "text" : "password"; });
+    $("openNet").addEventListener("change", openToggle);
+    $("btnWifiConnect").addEventListener("click", guard(wifiConnect));
+    $("btnWifiStatus").addEventListener("click", guard(wifiStatus));
+    $("btnWifiDisconnect").addEventListener("click", guard(() => simple("wifi.disconnect")));
+    $("btnWifiForget").addEventListener("click", guard(async () => {
+      if (confirm("Gespeicherte WLAN-Zugangsdaten auf dem ESP löschen?")) await simple("wifi.forget");
+    }));
+    $("btnTelStart").addEventListener("click", guard(() => {
+      let iv = parseInt($("interval").value, 10) || 1000;
+      iv = Math.max(200, Math.min(60000, iv));
+      return simple("telemetry.subscribe", { interval_ms: iv });
+    }));
+    $("btnTelStop").addEventListener("click", guard(() => simple("telemetry.unsubscribe")));
+    $("btnLedOn").addEventListener("click", guard(() => simple("led.set", { on: true })));
+    $("btnLedOff").addEventListener("click", guard(() => simple("led.set", { on: false })));
+    $("btnPing").addEventListener("click", guard(() => simple("sys.ping")));
+    $("btnEcho").addEventListener("click", guard(() => simple("echo", { hallo: "T190", zeit: new Date().toLocaleTimeString("de-DE") })));
+    $("btnDisp").addEventListener("click", guard(() => {
+      const t = $("dispText").value.slice(0, 64);
+      if (t) return simple("display.text", { text: t });
+    }));
+    $("btnReboot").addEventListener("click", guard(async () => {
+      if (confirm("ESP neu starten? Danach ist er wieder unsichtbar (Taste drücken).")) await simple("sys.reboot");
+    }));
+    $("btnFactory").addEventListener("click", guard(async () => {
+      if (confirm("Werksreset anfordern? Löscht WLAN-Daten und alle Kopplungen. Muss innerhalb von 30 s am ESP per Tastendruck bestätigt werden.")) {
+        await simple("sys.factory_reset", null, (d) => "Werksreset: " + d.msg);
+      }
+    }));
+    $("btnRaw").addEventListener("click", guard(rawSend));
+    $("remoteForm").addEventListener("submit", guard(remoteConnect));
+    $("btnRemoteOff").addEventListener("click", remoteDisconnect);
+    $("btnRSetup").addEventListener("click", guard(remoteSetup));
+    $("btnRNewKey").addEventListener("click", guard(remoteNewKey));
+    $("btnRStatus").addEventListener("click", guard(remoteStatus));
+    $("btnROn").addEventListener("click", guard(() => remoteEnable(true)));
+    $("btnROff").addEventListener("click", guard(() => remoteEnable(false)));
+    $("btnRForget").addEventListener("click", guard(remoteForget));
+    $("btnRCopy").addEventListener("click", guard(copyCode));
+    $("btnRHide").addEventListener("click", hideCode);
+    window.addEventListener("pagehide", () => { hideCode(); remoteDisconnect(); });
+    log("Bereit. " + (navigator.bluetooth ? "Web Bluetooth verfügbar." : "KEIN Web Bluetooth."));
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+</body>
+</html>
